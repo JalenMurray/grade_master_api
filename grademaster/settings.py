@@ -7,17 +7,14 @@ load_dotenv('env/.env')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+if DEBUG:
+    load_dotenv('env/.env.development')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+sn_6424^io0neu8e9pzq&%m#mslj=wf$88i!p$!(nbf1yof0n'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
 
 # Application definition
@@ -119,10 +116,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Add the URL of your React app
-    "http://localhost:8000",
-]
+CORS_ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS').split(" ")
 
 CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
