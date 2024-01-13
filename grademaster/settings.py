@@ -117,6 +117,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS').split(" ")
+print(CORS_ALLOWED_ORIGINS)
 
 CORS_ALLOW_HEADERS = [
     'access-control-allow-origin',
