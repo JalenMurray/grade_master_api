@@ -35,6 +35,8 @@ def get_grade_points(units, score, scale=GPA_VALUES):
     return points * units
 
 def get_gpa(classes):
+    if not classes:
+        return 0.0
     gp = [get_grade_points(cls.units, cls.score) for cls in classes]
     units = sum([cls.units for cls in classes])
     return sum(gp) / units
