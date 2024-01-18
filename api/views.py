@@ -12,85 +12,20 @@ from .serializers import UserSerializer, ClassSerializer, AssignmentTypeSerializ
     SemesterSerializer
 
 
-class ClassView(View):
-    def get(self, request, class_id):
-        c = get_object_or_404(Class, id=class_id)
-        assignment_types = c.assignment_types.all()
-        data = {
-            'class':{
-                'id': c.id,
-                'name': c.name,
-                'semester': c.semester,
-                'assignment_types': [
-                    {'id': at.id, 'name': at.name, 'max_score': at.max_score} for at in assignment_types
-                ]
-            }
-        }
-        return JsonResponse(data)
+class CheckUserAPI(View):
+    def post(self, request, *args, **kwargs):
+        uid = self.request.POST.get('uid')
+        auth = self.request.POST.get('auth')
 
-
-class AssignmentTypeView(View):
-    def get(self, request, at_id):
-        at = get_object_or_404(AssignmentType, id=at_id)
-        assignments = at.assignments.all()
-        data = {
-            'assignment_type': {
-                'id': at.id,
-                'name': at.name,
-                'max_score': at.max_score,
-                'assignments': [{'id': a.id, 'name': a.name, 'score': a.score, 'weight': a.weight} for a in assignments]
-            }
-        }
-        return JsonResponse(data)
-
-class AssignmentView(View):
-    def get(self, request, a_id):
-        a = get_object_or_404(Assignment, id=a_id)
-        data = {
-            'assignment': {
-                'id': a.id,
-                'name': a.name,
-                'score': a.score,
-                'weight': a.weight
-            }
-        }
-        return JsonResponse(data)
-
-
-class UserViewSet(ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-    @action(detail=True, methods=['post'])
-    def new(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status.HTTP_201_CREATED)
-
-
-class ClassViewSet(ModelViewSet):
-    serializer_class = ClassSerializer
-    queryset = Class.objects.all()
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        user_id = self.request.query_params.get('user_id')
-        if user_id:
-            queryset = queryset.filter(users__id=user_id)
-        return queryset
-
-
-class AssignmentViewSet(ModelViewSet):
-    queryset = Assignment.objects.all()
-    serializer_class = AssignmentSerializer
-
-    @action(detail=True, methods=['post'])
-    def new(self, request):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        try:
+            if auth:
+                user = get_object_or_404(User, auth=auth)
+            else:
+                user = get_object_or_404(User, uid=uid)
+            return JsonResponse({'exists': True, 'user': user})
+        except User.DoesNotExist:
+            return JsonResponse({'exists': False})
+        return JsonResponse({'error': 'Invalid Request Method'}, status=400)
 
 
 class UserList(ListCreateAPIView):

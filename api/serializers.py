@@ -43,16 +43,29 @@ def get_gpa(classes):
 
 
 class UserSerializer(ModelSerializer):
-    classes = SerializerMethodField()
+    semesters = SerializerMethodField()
+    current_semester = SerializerMethodField()
 
     class Meta:
         model = User
         fields = '__all__'
 
-    def get_classes(self, user):
-        user_classes = user.classes.all()
-        serializer = ClassSerializer(user_classes, many=True)
-        return serializer.data
+    def get_semesters(self, user):
+        user_semesters = user.semesters.all()
+        if user_semesters:
+            serializer = SemesterSerializer(user_semesters, many=True, read_only=True)
+            return serializer.data
+        else:
+            return None
+
+    def get_current_semester(self, user):
+        user_semesters = user.semesters.all()
+        current_semester = user_semesters.filter(current=True).first()
+        if current_semester:
+            serializer = SemesterSerializer(current_semester, many=False, read_only=True)
+            return serializer.data
+        else:
+            return None
 
 
 class AssignmentSerializer(ModelSerializer):

@@ -108,8 +108,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'https://grade-master-api.onrender.com/static/'
+STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -135,8 +138,12 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
+CORS_ORIGIN_WHITELIST = ['http://localhost:3000']
+
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
 }
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']

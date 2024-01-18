@@ -1,12 +1,15 @@
 from django.db import models
 from django.db.models import Model, CharField, DateTimeField, EmailField, IntegerField, FloatField,\
-    ForeignKey, BooleanField
+    ForeignKey, BooleanField, URLField, TextField
 
 
 class User(Model):
     username = CharField(max_length=50)
     display_name = CharField(max_length=200)
     email = EmailField()
+    uid = CharField(max_length=255)
+    auth_token = TextField(null=True, blank=True)
+    photo_url = URLField(null=True, blank=True)
     created_at = DateTimeField()
 
     def __str__(self):
@@ -18,9 +21,27 @@ class Semester(Model):
                                               ('Winter', 'Winter')])
     year = IntegerField()
     user = ForeignKey(User, on_delete=models.CASCADE, related_name='semesters')
+    current = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.season} {self.year}'
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            Semester.objects.filter(user=self.user).update(current=False)
+            self.current = True
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        is_current = self.current
+        user = self.user
+        super().delete(*args, **kwargs)
+        if is_current:
+            latest_semester = Semester.objects.filter(user=user).order_by('-year', '-season').first()
+            print(latest_semester)
+            if latest_semester:
+                latest_semester.current = True
+                latest_semester.save()
 
 
 class Class(Model):
@@ -63,6 +84,8 @@ class AssignmentType(Model):
     @property
     def total_score(self):
         assignments = Assignment.objects.filter(assignment_type=self)
+        if not assignments:
+            return 0
         total_score = sum((a.score / a.max_score) * a.weight for a in assignments)
         return total_score
 
@@ -101,9 +124,5 @@ class Assignment(Model):
         return f'{self.name}\t{self.score} / {self.assignment_type.max_score}'
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            self.max_score = self.assignment_type.max_score if self.assignment_type.max_score else 100.0
-            self.score = self.max_score
-            self.weight = 0.0
         super().save(*args, **kwargs)
         self.assignment_type.balance_weight()
